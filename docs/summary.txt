@@ -7,52 +7,138 @@ LIVE URL: https://paas-assessment-ajagu.azurewebsites.net
 RUNTIME STACK
 -------------
 Node.js 22 LTS with Express.js framework.
-Node.js was chosen for its lightweight footprint, fast startup time,
-and excellent support on Azure App Service Linux environments.
+Node.js was chosen because:
+- It is lightweight and has fast startup time
+- Azure App Service has excellent native support for Node.js on Linux
+- Express.js simplifies HTTP routing and middleware management
+- The npm ecosystem provides rich libraries like dotenv for config management
 
-PRICING TIER & SERVICE PLAN
+PRICING TIER JUSTIFICATION
 ----------------------------
-Plan Name: paas-assessment-plan
-Tier: F1 Free Tier — LinuxFree
-Region: West Europe (eastus had quota limitations)
-OS: Linux (chosen over Windows for lower cost and better Node.js performance)
-The Free tier was selected to minimize cost for assessment purposes.
-For production, B1 Basic or higher would be recommended for Always-On support.
+Tier Selected: F1 (Free) — LinuxFree
+Why F1 Free Tier:
+- Zero cost, ideal for assessment/development purposes
+- Provides 60 CPU minutes/day and 1GB memory — sufficient for a demo app
+- Linux OS was chosen over Windows because:
+  * Lower cost (Linux containers are cheaper on Azure)
+  * Better performance for Node.js workloads
+  * Smaller container footprint
+
+Why NOT other tiers for this project:
+- B1 Basic ($13/month): Needed for Always-On and custom domains in production
+- P1V2 Premium: Overkill for a demo; reserved for high-traffic production apps
+
+REGION SELECTION JUSTIFICATION
+--------------------------------
+Region: West Europe (Amsterdam)
+Why West Europe:
+- East US was attempted first but failed due to Free tier quota limitations
+  (Current Limit: 0 VMs, required: 1)
+- West Europe had available Free tier capacity
+- West Europe is a major Azure region with full feature support
 
 DEPLOYMENT METHOD
 -----------------
-GitHub Integration via Azure Deployment Center (manual integration).
+Method: GitHub Integration via Azure Deployment Center (ExternalGit/manual)
 Repository: https://github.com/Lawmekz/azure-paas-app
 Branch: main
 Startup command: node app.js
 
-ENVIRONMENT VARIABLES
-----------------------
-APP_ENV=production
-STUDENT_NAME=AJAGU NNAEMEKA LAWRENCE
-These are managed via Azure App Service Configuration blade without code changes.
+Why GitHub Integration:
+- Enables continuous deployment — every push to main triggers redeployment
+- No manual file uploads needed
+- Deployment logs available in Azure Portal > Deployment Center > Logs
+- Supports rollback to previous deployments
+
+ENVIRONMENT VARIABLES CONFIGURATION
+-------------------------------------
+Variables set via Azure App Service Configuration blade:
+  APP_ENV = production
+  STUDENT_NAME = AJAGU NNAEMEKA LAWRENCE
+
+Why use Azure Configuration instead of .env file:
+- Keeps secrets out of source code
+- Can be changed without redeploying the application
+- Follows 12-factor app methodology for config management
+- .env is in .gitignore to prevent accidental exposure
 
 MONITORING AND DIAGNOSTICS
 ---------------------------
-- Log Stream: Real-time logs via Azure Portal > App Service > Log stream
-- Metrics: CPU, Memory, HTTP requests via Portal > Metrics
-- Application Insights: Available to enable from Portal > Application Insights blade
-- Deployment logs: Viewable under Deployment Center > Logs
+Azure App Service provides several monitoring options:
 
-SCALING OPTIONS
----------------
-Vertical Scaling (Scale Up): Change App Service Plan tier
-  F1 Free > B1 Basic > B2 > P1V2 Premium
-Horizontal Scaling (Scale Out): Add more instances (available from B1 tier)
-The Free tier (F1) supports 1 instance only.
-Deployment Slots: Available for staging and zero-downtime releases.
+1. Log Stream (Real-time):
+   Portal > App Service > Log stream
+   Shows live stdout/stderr from the running Node.js process
+   Command to enable: az webapp log config --name paas-assessment-ajagu
+     --resource-group rg-paas-assessment --web-server-logging filesystem
 
-PAAS vs IAAS
-------------
-PaaS (Azure App Service):
-  - No VM management or OS patching required
-  - Built-in load balancing, SSL, auto-scaling
-  - Deploy directly from GitHub
+2. Metrics Dashboard:
+   Portal > App Service > Metrics
+   Available metrics: CPU Percentage, Memory Working Set, HTTP requests,
+   Response time, Bytes sent/received
+
+3. Application Insights (Advanced):
+   Portal > App Service > Application Insights > Enable
+   Provides: request tracing, dependency tracking, exception logging,
+   performance profiling, and custom dashboards
+
+4. Deployment Logs:
+   Portal > Deployment Center > Logs
+   Shows build and deployment history with success/failure status
+
+SCALING STRATEGIES
+-------------------
+Current tier (F1 Free) limitations:
+- 1 instance only, no scaling available
+- 60 CPU minutes/day shared compute
+
+Scale Up (Vertical) — Change pricing tier:
+  F1 Free (current) > B1 Basic > B2 > S1 Standard > P1V2 Premium
+  Command: az appservice plan update --name paas-assessment-plan
+    --resource-group rg-paas-assessment --sku B1
+  When to use: App needs more CPU/memory or Always-On feature
+
+Scale Out (Horizontal) — Add more instances:
+  Available from B1 tier and above
+  Portal: App Service > Scale out (App Service plan) > Manual scale
+  Auto-scale rule example: Add instance when CPU > 70% for 10 minutes
+  Command: az monitor autoscale create --resource-group rg-paas-assessment
+    --resource paas-assessment-plan --min-count 1 --max-count 5
+    --count 1
+
+DEPLOYMENT SLOTS (Zero-Downtime Releases)
+------------------------------------------
+Available from Standard tier (S1) and above.
+How it works:
+1. Create staging slot:
+   az webapp deployment slot create --name paas-assessment-ajagu
+     --resource-group rg-paas-assessment --slot staging
+2. Deploy to staging, test at:
+   https://paas-assessment-ajagu-staging.azurewebsites.net
+3. Swap staging to production (zero downtime):
+   az webapp deployment slot swap --name paas-assessment-ajagu
+     --resource-group rg-paas-assessment --slot staging
+
+PAAS vs IAAS COMPARISON
+------------------------
+PaaS (Azure App Service — used in this project):
+  Advantages:
+  - No VM management, OS patching, or server configuration
+  - Built-in load balancing, SSL certificates, auto-scaling
+  - Deploy directly from GitHub in minutes
+  - Reduced operational overhead — focus on code, not infrastructure
+  Disadvantages:
+  - Less control over OS and runtime environment
+  - Higher cost at scale compared to optimized IaaS
+
 IaaS (Azure Virtual Machines):
-  - Full OS control but requires manual Node.js setup
-  - Higher operational overhead
+  Advantages:
+  - Full control over OS, runtime, and server configuration
+  - Can be cheaper at scale with reserved instances
+  Disadvantages:
+  - Must manually install Node.js, Nginx, configure SSL
+  - Responsible for OS updates, security patches
+  - Much higher operational overhead
+
+Conclusion: PaaS (App Service) is the right choice for this project
+because it
