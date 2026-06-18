@@ -1,3 +1,58 @@
-Copy-Item "Screenshots - Copy\overview.png.png" "screenshots\overview.png"
-Copy-Item "Screenshots - Copy\Environment.png" "screenshots\configuration.png"
-Copy-Item "Screenshots - Copy\PaaS Overview 2.png" "screenshots\overview2.png"
+ASSESSMENT No. 5(2) — Azure PaaS Deployment Summary
+=====================================================
+
+STUDENT: AJAGU NNAEMEKA LAWRENCE
+LIVE URL: https://paas-assessment-ajagu.azurewebsites.net
+
+RUNTIME STACK
+-------------
+Node.js 22 LTS with Express.js framework.
+Node.js was chosen for its lightweight footprint, fast startup time,
+and excellent support on Azure App Service Linux environments.
+
+PRICING TIER & SERVICE PLAN
+----------------------------
+Plan Name: paas-assessment-plan
+Tier: F1 Free Tier — LinuxFree
+Region: West Europe (eastus had quota limitations)
+OS: Linux (chosen over Windows for lower cost and better Node.js performance)
+The Free tier was selected to minimize cost for assessment purposes.
+For production, B1 Basic or higher would be recommended for Always-On support.
+
+DEPLOYMENT METHOD
+-----------------
+GitHub Integration via Azure Deployment Center (manual integration).
+Repository: https://github.com/Lawmekz/azure-paas-app
+Branch: main
+Startup command: node app.js
+
+ENVIRONMENT VARIABLES
+----------------------
+APP_ENV=production
+STUDENT_NAME=AJAGU NNAEMEKA LAWRENCE
+These are managed via Azure App Service Configuration blade without code changes.
+
+MONITORING AND DIAGNOSTICS
+---------------------------
+- Log Stream: Real-time logs via Azure Portal > App Service > Log stream
+- Metrics: CPU, Memory, HTTP requests via Portal > Metrics
+- Application Insights: Available to enable from Portal > Application Insights blade
+- Deployment logs: Viewable under Deployment Center > Logs
+
+SCALING OPTIONS
+---------------
+Vertical Scaling (Scale Up): Change App Service Plan tier
+  F1 Free > B1 Basic > B2 > P1V2 Premium
+Horizontal Scaling (Scale Out): Add more instances (available from B1 tier)
+The Free tier (F1) supports 1 instance only.
+Deployment Slots: Available for staging and zero-downtime releases.
+
+PAAS vs IAAS
+------------
+PaaS (Azure App Service):
+  - No VM management or OS patching required
+  - Built-in load balancing, SSL, auto-scaling
+  - Deploy directly from GitHub
+IaaS (Azure Virtual Machines):
+  - Full OS control but requires manual Node.js setup
+  - Higher operational overhead
